@@ -1,0 +1,96 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Hero from '@components/Profile/Hero.astro';
+import PublicationsList from '@components/Research/PublicationsList.astro';
+import PublicationCard from '@components/Research/PublicationCard.astro';
+import ProjectsList from '@components/Research/ProjectsList.astro';
+import EducationItem from '@components/Profile/EducationItem.astro';
+import ExperienceItem from '@components/Profile/ExperienceItem.astro';
+import SkillsGrid from '@components/Profile/SkillsGrid.astro';
+import Section from '@components/UI/Section.astro';
+import { SEOGenerator } from '@utils/seo';
+import { profile } from '@data/profile';
+import { education } from '@data/education';
+import { experience } from '@data/experience';
+import { publications } from '@data/publications';
+import { EducationSorter, ExperienceSorter } from '@utils/sorters';
+
+const metadata = SEOGenerator.generateMetadata(
+  profile.name,
+  'UIC Computer Science PhD student researching diffusion models, physics-informed machine learning, and neural operators. Seeking Summer 2027 research internships.',
+  {
+    canonical: 'https://guoruisang.github.io/',
+    ogImage: 'https://guoruisang.github.io/images/avatar.jpg',
+    twitterCard: 'summary',
+    keywords: [
+      'PhD student',
+      'Computer Science',
+      'Machine Learning',
+      'Research',
+      ...profile.researchInterests,
+    ],
+  }
+);
+
+const sortedEducation = EducationSorter.byDate(education);
+const sortedExperience = ExperienceSorter.byDate(experience);
+const books = publications.filter(publication => publication.type === 'book');
+---
+
+<BaseLayout metadata={metadata}>
+  <Hero />
+
+  <Section id="publications" title="Selected Publications">
+    <PublicationsList featured={true} groupByYear={false} />
+  </Section>
+
+  <Section id="research" title="Research" subtitle="Methods I develop and the problems they address" background="variant">
+    <ProjectsList featured={true} />
+  </Section>
+
+  <Section id="experience" title="Experience">
+    <div class="experience-list">
+      {sortedExperience.map((exp) => (
+        <ExperienceItem experience={exp} />
+      ))}
+    </div>
+  </Section>
+
+  <Section id="education" title="Education" background="variant">
+    <div class="education-list">
+      {sortedEducation.map((edu) => (
+        <EducationItem education={edu} />
+      ))}
+    </div>
+  </Section>
+
+  <Section id="skills" title="Skills & Expertise">
+    <SkillsGrid />
+  </Section>
+
+  {books.length > 0 && (
+    <Section id="books" title="Books" background="variant">
+      {books.map(book => <PublicationCard publication={book} />)}
+    </Section>
+  )}
+</BaseLayout>
+
+<style>
+  .experience-list,
+  .education-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-5);
+  }
+</style>
+
+<script is:inline type="application/ld+json" set:html={JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: profile.name,
+  jobTitle: profile.title,
+  affiliation: { '@type': 'Organization', name: profile.institution },
+  email: profile.email,
+  url: 'https://guoruisang.github.io/',
+  sameAs: Object.values(profile.socialLinks).filter(Boolean),
+}).replace(/</g, '\\u003c')} />
